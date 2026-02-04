@@ -14,14 +14,15 @@ Reglas:
 - Sin markdown
 """
 
-    client = genai.Client(
-        api_key=os.environ["GOOGLE_API_KEY"]
+    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+
+    model = genai.GenerativeModel(
+        model_name="models/gemini-1.5-flash"
     )
 
-    response = client.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=prompt,
-        config={
+    response = model.generate_content(
+        prompt,
+        generation_config={
             "temperature": 0.2,
             "max_output_tokens": 300
         }

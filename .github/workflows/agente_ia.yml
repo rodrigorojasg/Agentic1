@@ -23,7 +23,7 @@ jobs:
 
       - name: Instalar dependencias
         run: |
-          pip install google-generativeai
+          pip install --upgrade google-generativeai
 
       - name: Ejecutar agente IA
         id: agente
