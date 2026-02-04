@@ -1,4 +1,4 @@
-name: Agente IA responde Issue
+name: Agente IA responde Issue (GPT-3.5)
 
 on:
   issues:
@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      issues: write   # 👈 clave para comentar el issue
+      issues: write
       contents: read
 
     steps:
@@ -24,15 +24,12 @@ jobs:
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install google-genai
-
-      - name: Set lenguaje
-        run: echo "LENGUAJE=${{ github.event.issue.title }}" >> $GITHUB_ENV
+          pip install openai
 
       - name: Ejecutar agente IA
         id: agente
         env:
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           RESULTADO=$(python agente_ia.py "${{ github.event.issue.title }}")
           echo "RESULTADO<<EOF" >> $GITHUB_ENV
@@ -44,7 +41,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh issue comment ${{ github.event.issue.number }} --body "
-          ### 🤖 Código generado automáticamente
+          ### 🤖 Código generado automáticamente (GPT-3.5)
 
           Lenguaje solicitado: **${{ github.event.issue.title }}**
 
