@@ -1,6 +1,6 @@
 import os
 import sys
-import google.genai as genai
+import google.generativeai as genai
 
 
 def generar_hola_mundo(lenguaje: str) -> str:
