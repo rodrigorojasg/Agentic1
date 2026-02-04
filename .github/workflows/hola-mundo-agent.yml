@@ -37,9 +37,18 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const lang = process.env.LANG;
+            const result = process.env.RESULT;
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "### Hola Mundo en ${process.env.LANG}\n``` \n${process.env.RESULT}\n```"
-            })
+              body: `### Hola Mundo en ${lang}
+
+              \`\`\`
+              ${result}
+              \`\`\`
+              `
+            });
+
