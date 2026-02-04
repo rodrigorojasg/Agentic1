@@ -26,12 +26,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install google-genai
 
+      - name: Set lenguaje
+        run: echo "LENGUAJE=${{ github.event.issue.title }}" >> $GITHUB_ENV
+
       - name: Ejecutar agente IA
         id: agente
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
-          echo "LENGUAJE=${{ github.event.issue.title }}" >> $GITHUB_ENV
           RESULTADO=$(python agente_ia.py "${{ github.event.issue.title }}")
           echo "RESULTADO<<EOF" >> $GITHUB_ENV
           echo "$RESULTADO" >> $GITHUB_ENV
