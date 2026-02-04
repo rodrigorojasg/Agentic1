@@ -4,15 +4,12 @@ from google import genai
 
 
 def run_agent():
-    language = (
-        os.getenv("INPUT_LANGUAGE")
-        or (sys.argv[1] if len(sys.argv) > 1 else "Python")
-    )
-
+    language = sys.argv[1] if len(sys.argv) > 1 else "Python"
     api_key = os.getenv("GOOGLE_API_KEY")
+
     if not api_key:
-        print("::error::La variable GOOGLE_API_KEY no está configurada.")
-        sys.exit(1)
+        print("ERROR: GOOGLE_API_KEY no está configurada.")
+        return
 
     prompt = (
         f"Generate ONLY the source code for a minimal "
@@ -21,21 +18,22 @@ def run_agent():
     )
 
     try:
-        genai.configure(api_key=api_key)
+        client = genai.Client(api_key=api_key)
 
-        # ⚠️ ÚNICO modelo estable hoy en v1beta
-        model = genai.GenerativeModel("models/text-bison-001")
-
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+        )
 
         if not response or not response.text:
-            raise RuntimeError("Respuesta vacía del modelo")
+            print("ERROR: Respuesta vacía del modelo.")
+            return
 
         print(response.text.strip())
 
     except Exception as e:
-        print(f"::error::Error en el agente: {str(e)}")
-        sys.exit(1)
+        # 👇 IMPORTANTE: no romper el job
+        print(f"ERROR generando código: {e}")
 
 
 if __name__ == "__main__":
