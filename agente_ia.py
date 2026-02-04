@@ -1,6 +1,7 @@
 import os
 import sys
-from google import genai
+import google.genai as genai
+
 
 def generar_hola_mundo(lenguaje: str) -> str:
     prompt = f"""
@@ -13,7 +14,9 @@ Reglas:
 - Sin markdown
 """
 
-    client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
+    client = genai.Client(
+        api_key=os.environ["GOOGLE_API_KEY"]
+    )
 
     response = client.models.generate_content(
         model="gemini-1.5-flash",
@@ -38,4 +41,3 @@ if __name__ == "__main__":
 
     lenguaje = sys.argv[1]
     print(generar_hola_mundo(lenguaje))
-
