@@ -1,42 +1,77 @@
 import os
 import sys
+import json
 from openai import OpenAI
 
+OUTPUT_FILE = "generated_files.txt"
 
 def run_agent():
-    language = sys.argv[1] if len(sys.argv) > 1 else "Python"
+    if len(sys.argv) < 3:
+        print("::error::Uso: python agente_ia.py '<stack>' '<historia>'")
+        sys.exit(1)
+
+    stack = sys.argv[1]
+    historia = sys.argv[2]
+
     api_key = os.getenv("OPENAI_API_KEY")
-
     if not api_key:
-        print("ERROR: OPENAI_API_KEY no está configurada.")
-        return
+        print("::error::OPENAI_API_KEY no configurada")
+        sys.exit(1)
 
-    prompt = (
-        f"Generate ONLY the source code for a minimal "
-        f"'Hello World' program in {language}. "
-        f"No explanations. No markdown."
+    client = OpenAI(api_key=api_key)
+
+    prompt = f"""
+Eres un generador de proyectos de software.
+
+Stack: {stack}
+Historia de usuario: {historia}
+
+Devuelve SOLO un JSON con esta estructura exacta:
+
+{{
+  "files": [
+    {{
+      "path": "ruta/del/archivo",
+      "content": "contenido completo del archivo"
+    }}
+  ]
+}}
+
+Reglas:
+- Código mínimo pero funcional
+- Sin markdown
+- Sin explicaciones
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.2
     )
 
     try:
-        client = OpenAI(api_key=api_key)
+        data = json.loads(response.choices[0].message.content)
+    except Exception:
+        print("::error::Respuesta del modelo no es JSON válido")
+        print(response.choices[0].message.content)
+        sys.exit(1)
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You generate source code only."},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0,
-            max_tokens=200,
-        )
+    created_files = []
 
-        code = response.choices[0].message.content.strip()
-        print(code)
+    for f in data["files"]:
+        path = f["path"]
+        os.makedirs(os.path.dirname(path), exist_ok=True)
 
-    except Exception as e:
-        # ⚠️ NO romper el workflow
-        print(f"ERROR generando código: {e}")
+        with open(path, "w", encoding="utf-8") as file:
+            file.write(f["content"])
 
+        created_files.append(path)
+        print(f"Creado: {path}")
+
+    # Guardamos listado para el Action
+    with open(OUTPUT_FILE, "w") as f:
+        for path in created_files:
+            f.write(path + "\n")
 
 if __name__ == "__main__":
     run_agent()

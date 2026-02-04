@@ -1,53 +1,66 @@
-name: Agente IA responde Issue (GPT-3.5)
+name: AI Agent on Issue
 
 on:
   issues:
     types: [opened]
 
+permissions:
+  contents: write
+  issues: write
+
 jobs:
-  responder-issue:
+  generate:
     runs-on: ubuntu-latest
 
-    permissions:
-      issues: write
-      contents: read
-
     steps:
-      - name: Checkout repositorio
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Configurar Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: Instalar dependencias
+      - name: Install dependencies
+        run: pip install openai
+
+      - name: Parse issue body
+        id: parse
         run: |
-          python -m pip install --upgrade pip
-          pip install openai
+          BODY="${{ github.event.issue.body }}"
 
-      - name: Ejecutar agente IA
-        id: agente
+          STACK=$(echo "$BODY" | grep -i "^Stack:" | cut -d':' -f2- | xargs)
+          HISTORIA=$(echo "$BODY" | grep -i "^Historia:" | cut -d':' -f2- | xargs)
+
+          echo "stack=$STACK" >> $GITHUB_OUTPUT
+          echo "historia=$HISTORIA" >> $GITHUB_OUTPUT
+
+      - name: Run AI agent
         env:
-          OPENAI_API_KEY: ${{ secrets.OPEN_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          RESULTADO=$(python agente_ia.py "${{ github.event.issue.title }}")
-          echo "RESULTADO<<EOF" >> $GITHUB_ENV
-          echo "$RESULTADO" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          python agente_ia.py \
+            "${{ steps.parse.outputs.stack }}" \
+            "${{ steps.parse.outputs.historia }}"
 
-      - name: Comentar resultado en el Issue
+      - name: Commit & push changes
+        run: |
+          git config user.name "ai-agent"
+          git config user.email "ai-agent@github.com"
+          git add .
+          git commit -m "AI: código generado para issue #${{ github.event.issue.number }}"
+          git push
+
+      - name: Comment on issue with generated files
+        run: |
+          echo "### 🤖 Archivos generados automáticamente" > comment.txt
+          echo "" >> comment.txt
+
+          while read file; do
+            echo "- \`$file\`" >> comment.txt
+          done < generated_files.txt
+
+          gh issue comment ${{ github.event.issue.number }} \
+            --body-file comment.txt
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          cat << 'EOF' > comment.md
-          ### 🤖 Código generado automáticamente (IA)
-
-          Lenguaje solicitado: **${{ github.event.issue.title }}**
-
-          ```
-          ${{ env.RESULTADO }}
-          ```
-          EOF
-
-          gh issue comment ${{ github.event.issue.number }} --body-file comment.md
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
