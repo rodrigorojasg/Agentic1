@@ -3,42 +3,40 @@ import sys
 import google.generativeai as genai
 
 
-def generar_hola_mundo(lenguaje: str) -> str:
-    prompt = f"""
-Generate a minimal and correct "Hello World" example
-in the programming language: {lenguaje}.
-
-Rules:
-- Output ONLY code
-- No explanations
-- No markdown
-"""
-
-    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
-
-    model = genai.GenerativeModel(
-        model_name="models/gemini-1.0-pro"
+def run_agent():
+    language = (
+        os.getenv("INPUT_LANGUAGE")
+        or (sys.argv[1] if len(sys.argv) > 1 else "Python")
     )
 
-    response = model.generate_content(
-        prompt,
-        generation_config={
-            "temperature": 0.2,
-            "max_output_tokens": 300
-        }
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        print("::error::La variable GOOGLE_API_KEY no está configurada.")
+        sys.exit(1)
+
+    prompt = (
+        f"Generate ONLY the source code for a minimal "
+        f"'Hello World' program in {language}. "
+        f"No explanations. No markdown."
     )
 
-    return response.text.strip()
+    try:
+        genai.configure(api_key=api_key)
+
+        # ⚠️ ÚNICO modelo estable hoy en v1beta
+        model = genai.GenerativeModel("models/text-bison-001")
+
+        response = model.generate_content(prompt)
+
+        if not response or not response.text:
+            raise RuntimeError("Respuesta vacía del modelo")
+
+        print(response.text.strip())
+
+    except Exception as e:
+        print(f"::error::Error en el agente: {str(e)}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Uso: python agente_ia.py <lenguaje>")
-        sys.exit(1)
-
-    if not os.getenv("GOOGLE_API_KEY"):
-        print("ERROR: Falta GOOGLE_API_KEY")
-        sys.exit(1)
-
-    lenguaje = sys.argv[1]
-    print(generar_hola_mundo(lenguaje))
+    run_agent()
