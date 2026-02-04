@@ -28,7 +28,7 @@ jobs:
       - name: Ejecutar agente
         id: agente
         run: |
-          RESULT=$(python agent.py "$LANG")
+          RESULT=$(python Agent.py "$LANG")
           echo "RESULT<<EOF" >> $GITHUB_ENV
           echo "$RESULT" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
