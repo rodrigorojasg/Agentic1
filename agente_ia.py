@@ -1,20 +1,28 @@
 import os
 import sys
-import google.generativeai as genai
+from google import genai
 
 def generar_hola_mundo(lenguaje: str) -> str:
     prompt = f"""
 Genera un ejemplo mínimo y correcto de "Hola Mundo"
 en el lenguaje {lenguaje}.
 
-Requisitos:
-- Solo código
+Reglas:
+- Devuelve SOLO código
 - Sin explicaciones
-- Usar convenciones estándar del lenguaje
+- Sin markdown
 """
 
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    response = model.generate_content(prompt)
+    client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
+
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=prompt,
+        config={
+            "temperature": 0.2,
+            "max_output_tokens": 300
+        }
+    )
 
     return response.text.strip()
 
@@ -24,14 +32,10 @@ if __name__ == "__main__":
         print("Uso: python agente_ia.py <lenguaje>")
         sys.exit(1)
 
-    api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        print("ERROR: Falta la variable de entorno GOOGLE_API_KEY")
+    if not os.getenv("GOOGLE_API_KEY"):
+        print("ERROR: Falta GOOGLE_API_KEY")
         sys.exit(1)
 
-    genai.configure(api_key=api_key)
-
     lenguaje = sys.argv[1]
-    codigo = generar_hola_mundo(lenguaje)
+    print(generar_hola_mundo(lenguaje))
 
-    print(codigo)
