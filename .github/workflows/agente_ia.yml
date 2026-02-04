@@ -1,0 +1,51 @@
+name: Agente IA responde Issue
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  responder-issue:
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write   # 👈 clave para comentar el issue
+      contents: read
+
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: |
+          pip install google-generativeai
+
+      - name: Ejecutar agente IA
+        id: agente
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          echo "LENGUAJE=${{ github.event.issue.title }}" >> $GITHUB_ENV
+          RESULTADO=$(python agente_ia.py "${{ github.event.issue.title }}")
+          echo "RESULTADO<<EOF" >> $GITHUB_ENV
+          echo "$RESULTADO" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Comentar resultado en el Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "
+          ### 🤖 Código generado automáticamente
+
+          Lenguaje solicitado: **${{ github.event.issue.title }}**
+
+          \`\`\`
+          ${{ env.RESULTADO }}
+          \`\`\`
+          "
