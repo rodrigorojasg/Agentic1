@@ -5,19 +5,19 @@ import google.generativeai as genai
 
 def generar_hola_mundo(lenguaje: str) -> str:
     prompt = f"""
-Genera un ejemplo mínimo y correcto de "Hola Mundo"
-en el lenguaje {lenguaje}.
+Generate a minimal and correct "Hello World" example
+in the programming language: {lenguaje}.
 
-Reglas:
-- Devuelve SOLO código
-- Sin explicaciones
-- Sin markdown
+Rules:
+- Output ONLY code
+- No explanations
+- No markdown
 """
 
     genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
     model = genai.GenerativeModel(
-        model_name="models/gemini-1.5-flash"
+        model_name="models/gemini-1.0-pro"
     )
 
     response = model.generate_content(
