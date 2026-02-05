@@ -39,6 +39,7 @@ Devuelve SOLO un JSON con esta estructura exacta:
 
 Reglas:
 - Código mínimo pero funcional
+- Usa exclusivamente el stack tecnológico entregado, si el stack no es conocido usa el màs comùn par ese tipo de requerimientos.
 - Sin markdown
 - Sin explicaciones
 """
