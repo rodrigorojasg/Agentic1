@@ -1,0 +1,14 @@
+# Estructura Estándar de Proyecto Spring Boot
+
+## Paquetes Base
+
+```text
+com.company.servicio
+├── Application.java
+├── controller
+├── service
+├── repository
+├── model
+├── dto
+├── config
+├── exception

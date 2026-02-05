@@ -21,28 +21,28 @@ def run_agent():
     client = OpenAI(api_key=api_key)
 
     prompt = f"""
-Eres un generador de proyectos de software.
+    Eres un generador de proyectos de software.
 
-Stack: {stack}
-Historia de usuario: {historia}
+    Stack: {stack}
+    Historia de usuario: {historia}
 
-Devuelve SOLO un JSON con esta estructura exacta:
+    Devuelve SOLO un JSON con esta estructura exacta:
 
-{{
-  "files": [
     {{
-      "path": "ruta/del/archivo",
-      "content": "contenido completo del archivo"
+    "files": [
+        {{
+        "path": "ruta/del/archivo",
+        "content": "contenido completo del archivo"
+        }}
+    ]
     }}
-  ]
-}}
 
-Reglas:
-- Código mínimo pero funcional
-- Usa exclusivamente el stack tecnológico entregado, si el stack no es conocido usa el màs comùn par ese tipo de requerimientos.
-- Sin markdown
-- Sin explicaciones
-"""
+    Reglas:
+    - Código mínimo pero funcional
+    - Usa exclusivamente el stack tecnológico entregado, si el stack no es conocido usa el màs comùn par ese tipo de requerimientos.
+    - Sin markdown
+    - Sin explicaciones
+    """
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",

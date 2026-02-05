@@ -1,0 +1,94 @@
+name: 🤖 Agente IA - Generar Código desde Issue
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  generate-code:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write   # commit al repo
+      issues: write     # comentar el issue
+
+    steps:
+      # ---------------------------------------
+      # Checkout
+      # ---------------------------------------
+      - name: 📥 Checkout repositorio
+        uses: actions/checkout@v4
+
+      # ---------------------------------------
+      # Python
+      # ---------------------------------------
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 📦 Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install openai
+
+      # ---------------------------------------
+      # Configuración declarativa del agente
+      # ---------------------------------------
+      - name: ⚙️ Configurar entorno del agente
+        run: |
+          echo "CODE_AGENT_PROVIDER=openai" >> $GITHUB_ENV
+          echo "CODE_AGENT_MODEL=gpt-4o-mini" >> $GITHUB_ENV
+          echo "CODE_PROMPT_VERSION=v1" >> $GITHUB_ENV
+
+      # ---------------------------------------
+      # Ejecutar agente IA (orquestador)
+      # ---------------------------------------
+      - name: 🤖 Ejecutar agente IA
+        id: agent
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          FILES=$(python orches.py \
+            "${{ github.event.issue.title }}" \
+            "${{ github.event.issue.body }}")
+
+          echo "FILES<<EOF" >> $GITHUB_ENV
+          echo "$FILES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      # ---------------------------------------
+      # Commit automático (opcional)
+      # ---------------------------------------
+      #- name: 📤 Commit y push de archivos generados
+      #  run: |
+      #    git config user.name "agentic-bot"
+      #    git config user.email "agentic-bot@users.noreply.github.com"
+      #
+      #    git add .
+      #    git commit -m "🤖 Código generado por agente IA para issue #${{ github.event.issue.number }}" || echo "No changes to commit"
+      #    git push
+
+      # ---------------------------------------
+      # Responder en el issue
+      # ---------------------------------------
+      - name: 💬 Comentar resultado en el Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "
+          ## 🤖 Código generado automáticamente
+
+          **Stack solicitado**
+          \`${{ github.event.issue.title }}\`
+
+          **Historia de usuario**
+          > ${{ github.event.issue.body }}
+
+          **Archivos creados**
+          \`\`\`
+          ${{ env.FILES }}
+          \`\`\`
+
+          ✅ Los archivos fueron generados por el agente IA.
+          "

@@ -1,0 +1,23 @@
+code_agent:
+  generate_code:
+    - path: frontend/App.jsx
+      content: |
+        export default function App() {
+          return <h1>Dummy Code Agent</h1>;
+        }
+
+    - path: backend/Application.java
+      content: |
+        public class Application {
+            public static void main(String[] args) {
+                System.out.println("Dummy backend");
+            }
+        }
+
+test_agent:
+  generate_tests:
+    - path: tests/app.test.js
+      content: |
+        test("dummy test", () => {
+          expect(true).toBe(true);
+        })

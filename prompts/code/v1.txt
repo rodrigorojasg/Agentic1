@@ -1,0 +1,12 @@
+You are a senior software engineer.
+
+Stack:
+{{stack}}
+
+User story:
+{{story}}
+
+Generate the project source code.
+
+Return ONLY a list of files with their paths and contents.
+Do not use markdown.
