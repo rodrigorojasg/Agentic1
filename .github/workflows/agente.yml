@@ -49,7 +49,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          FILES=$(python orchestrator_agent.py \
+          FILES=$(python agents/orchestrator_agent.py \
             "${{ github.event.issue.title }}" \
             "${{ github.event.issue.body }}")
 
