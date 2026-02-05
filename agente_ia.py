@@ -60,13 +60,17 @@ Reglas:
 
     for f in data["files"]:
         path = f["path"]
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+
+        dir_name = os.path.dirname(path)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
 
         with open(path, "w", encoding="utf-8") as file:
             file.write(f["content"])
 
         created_files.append(path)
         print(f"Creado: {path}")
+
 
     # Guardamos listado para el Action
     with open(OUTPUT_FILE, "w") as f:
